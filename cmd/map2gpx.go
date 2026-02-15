@@ -44,14 +44,14 @@ func main() {
 			rec[j] = data[i+2+j] ^ XORKey
 		}
 
-		// Parse timestamp from BCD digits at positions 0-13
-		// Format: YYYY MM DD HH MM SS (each digit is one byte)
-		year := bcdToInt(rec[0:4])
-		month := bcdToInt(rec[4:6])
-		day := bcdToInt(rec[6:8])
-		hour := bcdToInt(rec[8:10])
-		min := bcdToInt(rec[10:12])
-		sec := bcdToInt(rec[12:14])
+		// Parse GPS UTC timestamp from BCD digits at positions 15-28
+		// (more accurate than local clock at positions 0-13)
+		year := bcdToInt(rec[15:19])
+		month := bcdToInt(rec[19:21])
+		day := bcdToInt(rec[21:23])
+		hour := bcdToInt(rec[23:25])
+		min := bcdToInt(rec[25:27])
+		sec := bcdToInt(rec[27:29])
 
 		// Parse latitude from BCD at positions 31-38
 		// Format: ddmm.mmmm (NMEA style)
@@ -76,6 +76,12 @@ func main() {
 			lon = float64(lonDeg) + lonMin/60.0
 		}
 
+		// Parse altitude from BCD at positions 51-53 (meters)
+		alt := bcdToInt(rec[51:54])
+
+		// Parse speed from BCD at positions 54-57 (0.1 km/h units)
+		speedKmh := float64(bcdToInt(rec[54:58])) / 10.0
+
 		// Validate coordinates
 		if lat < -90 || lat > 90 || lon < -180 || lon > 180 {
 			continue
@@ -87,8 +93,12 @@ func main() {
 		t := time.Date(year, time.Month(month), day, hour, min, sec, 0, time.UTC)
 
 		fmt.Fprintf(out,
-			`<trkpt lat="%.7f" lon="%.7f"><time>%s</time></trkpt>`+"\n",
-			lat, lon, t.Format(time.RFC3339),
+			"<trkpt lat=\"%.7f\" lon=\"%.7f\">"+
+				"<ele>%d</ele>"+
+				"<time>%s</time>"+
+				"<speed>%.1f</speed>"+
+				"</trkpt>\n",
+			lat, lon, alt, t.Format(time.RFC3339), speedKmh,
 		)
 		points++
 	}

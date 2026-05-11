@@ -1,0 +1,61 @@
+name: Release
+
+on:
+  push:
+    tags: [ "v*" ]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+          - goos: darwin
+            goarch: arm64
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Go environment
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.26'
+        cache: true
+
+    - name: Get version tag
+      id: version
+      run: echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+
+    - name: Build binary
+      run: CGO_ENABLED=0 GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -buildvcs=false -ldflags='-s -w' -o ./map2gpx ./cmd/
+
+    - name: Create archive
+      run: tar czf map2gpx-${{ steps.version.outputs.tag }}-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz map2gpx
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: map2gpx-${{ steps.version.outputs.tag }}-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz
+        path: ./map2gpx-${{ steps.version.outputs.tag }}-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz
+
+  publish:
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+        merge-multiple: true
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        generate_release_notes: true
+        files: artifacts/*

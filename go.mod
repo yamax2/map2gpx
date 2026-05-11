@@ -1,3 +1,3 @@
 module github.com/yamax2/map2gpx
 
-go 1.25.4
+go 1.26.3

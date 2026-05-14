@@ -9,8 +9,8 @@ import (
 const XORKey = 0x9A
 
 func main() {
-	if len(os.Args) != 3 {
-		fmt.Println("Usage: map2gpx input.MAP output.gpx")
+	if len(os.Args) != 2 {
+		fmt.Fprintln(os.Stderr, "Usage: map2gpx input.MAP > output.gpx")
 		os.Exit(1)
 	}
 
@@ -19,11 +19,7 @@ func main() {
 		panic(err)
 	}
 
-	out, err := os.Create(os.Args[2])
-	if err != nil {
-		panic(err)
-	}
-	defer out.Close()
+	out := os.Stdout
 
 	// GPX header
 	fmt.Fprintln(out, `<?xml version="1.0" encoding="UTF-8"?>`)
@@ -105,7 +101,7 @@ func main() {
 
 	fmt.Fprintln(out, `</trkseg></trk></gpx>`)
 
-	fmt.Printf("Done. %d track points written\n", points)
+	fmt.Fprintf(os.Stderr, "Done. %d track points written\n", points)
 }
 
 // bcdToInt converts a slice of BCD digits to an integer

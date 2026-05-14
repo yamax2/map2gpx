@@ -29,13 +29,15 @@ go build -o map2gpx ./cmd/map2gpx.go
 ## Usage
 
 ```bash
-map2gpx input.MAP output.gpx
+map2gpx input.MAP > output.gpx
 ```
+
+The GPX is written to stdout; the status message is written to stderr.
 
 ## Example
 
 ```bash
-$ map2gpx AMBA0004.MAP track.gpx
+$ map2gpx AMBA0004.MAP > track.gpx
 Done. 3027 track points written
 ```
 

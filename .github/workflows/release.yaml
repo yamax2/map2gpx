@@ -33,7 +33,7 @@ jobs:
       run: echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
 
     - name: Build binary
-      run: CGO_ENABLED=0 GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -buildvcs=false -ldflags='-s -w' -o ./map2gpx ./cmd/
+      run: CGO_ENABLED=0 GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -buildvcs=false -ldflags="-s -w -X main.version=${{ steps.version.outputs.tag }}" -o ./map2gpx ./cmd/
 
     - name: Create archive
       run: tar czf map2gpx-${{ steps.version.outputs.tag }}-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz map2gpx
